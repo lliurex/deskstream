@@ -1,0 +1,65 @@
+This tool adapts a sources package folder for the lliurex-store. 
+Generates the xml appinfo file and adds the dir "llx-resources" needed for the llxsrc debhelper to work. Also modifies the desktop file removing some mistakes.
+
+Usage:
+./desktop_to_xml svn_dir
+
+This tool needs the vibrancy-colors dir from svn in the same dir as svn_dir
+Example:
+/home
+	/user
+		/svn
+			/svn_dir
+			/vibrancy-colors
+
+Running
+---------
+There're many kinds of packages "out in the wild" so this script tries to adapt to all of those.
+The script will ask the user when:
+ - The control file has two or more packages: In this case the script needs to know which is the package name that we're looking for.
+ - There's two or more install files in the debian dir: The script needs the install file who has the dirs with the desktop file
+ - There's two or more lines in the selected install file: For the same reason the script needs to ask for the right dir.
+
+ Will warn us when:
+ - The package uses an old rules file. 
+ - The vibrancy-colors dir is missing
+
+ Will abort if:
+ - Icon can't be found. Only svg ones are valid, the script will not use icons in png or any other format but svg.
+ - Missed svn dir
+
+Finally, if no errors are detected, the script populates the llx-resource dir and updates the rules file for add the llxsrc helper. 
+
+CONSIDERATIONS
+-------------
+Some packages are really old and have some "strange things", like gif icons, that have to be reworked.
+If the package has an old rules file it's convenient to update it to the new format.
+If the operation fails it's better to remove the dir and "re-co" from svn to avoid unexpected behaviors of the script (that should no pass but just in case...)
+
+The generated appfile.xml isn't a full one. It misses some important fields like the screenshots and the keywords. Keywords are needed to improve the search mechanism. For example, if gimp has "fotos" as a keyword when an user searches "programa para retocar fotos" the gimp will be one of the results.
+
+Also we've implemented some features like the videos or the zmd and sh installers. Those aren't part of the appstream standard so we made some tricks to add them to the store.
+
+Videos:
+		Defined as screenshots with "video" as image type. They could be from youtube or Vimeo (possibly also other sources, not tested) and we only need to put the url as the image.
+	        <screenshot>
+		            <image type="video">https://www.youtube.com/watch?v=nu46uDbTZvc</image>
+	        </screenshot>
+
+Zomandos:
+	The package must have the category "Zomando" and must be defined using the zmd as the pkgname field (without zmd extension)
+		<pkgname>zero-lliurex-wine64</pkgname> 
+
+Installers:
+	The package must have the category "Installer"
+
+	In same way as videos the only way is to use an url tag of type "installer".
+		<url type="installer"> http://download.netbeans.org/netbeans/8.2/final/bundles/netbeans-8.2-javaee-linux.sh/</url>
+
+---- DEPRECATED ----
+Zomandos and installers are already cataloged as appstream-generator (the tool that generates the catalog) can't parse them (logically) so when the catalogue is generated the "zomandos and installers catalogue" is added to the main software catalogue.
+---- UPDATED -----
+Last versions of this shell can work with zomandos and generate a valid appdata.xml file so there's no need to maintain a "zomandos catalogue".
+
+
+
